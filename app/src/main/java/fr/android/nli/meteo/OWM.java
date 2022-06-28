@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public final class OWM implements ListProvider<OWM.Observation> {
-    private static final String URL = "https://api.openweathermap.org/data/2.5/group?id=2950159,2761369,3169070,3117735,2988507,756135,2673730,2618425,658225,3196359,264371,2800866,456172,2267057,3054643,2964574,588409,3067696,593116,3060972&units=metric&lang=fr&mode=json";
+    private static final String URL = "https://api.openweathermap.org/data/2.5/group?id=264371,2950159,3060972,2800866,3054643,2618425,2964574,658225,2267057,3196359,3117735,2988507,3067696,456172,3169070,2673730,588409,2761369,593116,756135&units=metric&lang=fr&mode=json";
     private static final String KEY = "3c511d187303722ef3dbf36b7cb22bb2";
     private static final String ICON_BASE_URL = "http://openweathermap.org/img/w/";
     private static final String ICON_EXTENSION = "png";

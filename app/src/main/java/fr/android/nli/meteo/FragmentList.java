@@ -20,8 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
-
-import fr.android.nli.meteo.databinding.ActivityMeteoBinding;
+import fr.android.nli.meteo.OWM.Observation;
 import fr.android.nli.meteo.databinding.FragmentListBinding;
 
 public class FragmentList extends Fragment {
@@ -63,10 +62,10 @@ public class FragmentList extends Fragment {
      * C'est une démarche marketing pour promouvoir Kotlin en poussant les developpeurs Java a utiliser java.util.concurrent nettement moins abordable.
      */
     @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskProvider extends AsyncTask<String, Void, ArrayList<OWM.Observation>> {
+    private class AsyncTaskProvider extends AsyncTask<String, Void, ArrayList<Observation>> {
 
         @Override
-        protected ArrayList<OWM.Observation> doInBackground(String... urls) {
+        protected ArrayList<Observation> doInBackground(String... urls) {
             // Requeter le serveur OWM
             InputStream is;
             try {
@@ -81,7 +80,7 @@ public class FragmentList extends Fragment {
             while (scanner.hasNextLine())
                 sb.append(scanner.nextLine());
             //Exploiter la réponse et récuperer une liste.
-            ArrayList<OWM.Observation> observations;
+            ArrayList<Observation> observations;
             try {
                 observations = owm.toList(sb.toString());
             } catch (Exception e) {
@@ -92,9 +91,9 @@ public class FragmentList extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<OWM.Observation> observations) {
+        protected void onPostExecute(ArrayList<Observation> observations) {
             Log.d("getContent", observations.toString());
-            for (OWM.Observation obs : observations )
+            for (Observation obs : observations )
             adapter.add(obs.toString());
         }
     }
