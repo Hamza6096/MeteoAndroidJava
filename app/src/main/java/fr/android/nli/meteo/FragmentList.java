@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,16 +17,18 @@ import android.widget.ListView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Observer;
 import java.util.Scanner;
+
 import fr.android.nli.meteo.OWM.Observation;
 import fr.android.nli.meteo.databinding.FragmentListBinding;
 
-public class FragmentList extends Fragment {
-    private static final ListProvider<OWM.Observation> owm = new OWM();
-    private ArrayAdapter<String> adapter;
+public class FragmentList<P extends ListProvider<E>, E> extends Fragment {
+    private VMListProvider<P, E> vm;
 
     public FragmentList() {
         // Required empty public constructor
@@ -34,6 +37,9 @@ public class FragmentList extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Récupérer l'instance Singleton de VMListProvider.
+        vm = new ViewModelProvider(requireActivity()).get(VMListProvider.class);
+
     }
 
     @Override
@@ -43,58 +49,18 @@ public class FragmentList extends Fragment {
         fr.android.nli.meteo.databinding.FragmentListBinding binding = FragmentListBinding.inflate(inflater, container, false);
         // Récuperer le ListView depuis le layout via son id.
         ListView listView = binding.list;
-        // Crééer un ArrayAdapter de String.
-        adapter = new ArrayAdapter<>(this.getContext(), R.layout.item);
+        // Crééer un ArrayAdapter dédié.
+        ArrayAdapter<E> adapter = vm.getProvider().getAdapter(this.getContext());
         // Associer le ListView à l'ArrayAdapter.
         listView.setAdapter(adapter);
-        // Requêter le serveur
-        new AsyncTaskProvider().execute(owm.getURL());
-
-        // Fournir le tableau a l'ArrayAdapter
-        //adapter.addAll(cities);
-
+        // Observer la liste du provider du provider et peupler l'adapter.
+        vm .getLDList().observe(getViewLifecycleOwner(), list -> {
+            adapter.clear();
+                adapter.addAll(list);
+        });
         // Retourner le fragment inflaté
         return binding.getRoot();
     }
 
-    /**
-     * L'API level 30 a marqué comme déprécié AsyncTask (Java) mais pas CoroutineScope (Kotlin) alors que cette dernière est une stricte copie de la première.
-     * C'est une démarche marketing pour promouvoir Kotlin en poussant les developpeurs Java a utiliser java.util.concurrent nettement moins abordable.
-     */
-    @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskProvider extends AsyncTask<String, Void, ArrayList<Observation>> {
 
-        @Override
-        protected ArrayList<Observation> doInBackground(String... urls) {
-            // Requeter le serveur OWM
-            InputStream is;
-            try {
-                is = new URL(urls[0]).openStream();
-            } catch (IOException e) {
-                Log.e("FragmentList", "Réponse serveur incorrect");
-                return null;
-            }
-            //Lire la réponse ligne à ligne
-            StringBuilder sb = new StringBuilder();
-            Scanner scanner = new Scanner(is);
-            while (scanner.hasNextLine())
-                sb.append(scanner.nextLine());
-            //Exploiter la réponse et récuperer une liste.
-            ArrayList<Observation> observations;
-            try {
-                observations = owm.toList(sb.toString());
-            } catch (Exception e) {
-                Log.e("FragmentList", "Réponse serveur incorrect");
-                return null;
-            }
-            return observations;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Observation> observations) {
-            Log.d("getContent", observations.toString());
-            for (Observation obs : observations )
-            adapter.add(obs.toString());
-        }
-    }
 }
