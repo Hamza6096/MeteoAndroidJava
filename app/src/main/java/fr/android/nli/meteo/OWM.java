@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import fr.android.nli.meteo.OWM.Observation;
 
 import java.io.IOException;
@@ -63,7 +64,7 @@ public final class OWM implements ListProvider<Observation> {
             InputStream icon;
             try {
                 obs.icon = BitmapFactory.decodeStream(new URL(obs.iconURL).openStream());
-            }catch (IOException e){
+            } catch (IOException e) {
                 Log.e("OWM.toList", ERR_ICON_NOT_FOUND);
             }
 
@@ -105,10 +106,10 @@ public final class OWM implements ListProvider<Observation> {
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
             View view;
             if (convertView == null) {
-                // Cet item n'est pas recyclé, inflater le Layout de l'item.
+                // Cet item n'est pas recyclé, (donc inflater), l'utiliser te quel.
                 Log.d("Adapter", "inflater");
                 view = LayoutInflater.from(getContext()).inflate(resource, parent, false);
-            }else {
+            } else {
                 // Cet item est recyclé, utiliser tel quel
                 Log.d("Adapter", "recycle");
                 view = convertView;
@@ -116,6 +117,10 @@ public final class OWM implements ListProvider<Observation> {
             // Utiliser l'observation pour définir les champs du layout
             ((TextView) view.findViewById(R.id.item_text)).setText(getItem(position).toString());
             ((ImageView) view.findViewById(R.id.item_icon)).setImageBitmap(getItem(position).icon);
+            // Si champs description disponible, le définir.
+            TextView tvDescription = view.findViewById(R.id.item_description);
+            if (tvDescription != null)
+                tvDescription.setText(getItem(position).description);
             // Retourner le layout inflaté et renseigné.
             return view;
         }

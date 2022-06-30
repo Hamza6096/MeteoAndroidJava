@@ -7,7 +7,6 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.io.IOException;
@@ -16,12 +15,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class VMListProvider <P extends ListProvider<E>, E> extends AndroidViewModel {
+public class VMListProvider<P extends ListProvider<E>, E> extends AndroidViewModel {
     private final Application application;
     private static final String ERROR_WRONG_SERVER_RESPONSE = "ERROR_WRONG_SERVER_RESPONSE";
     private static final String ERROR_WRONG_JSON_RESPONSE = "ERROR_WRONG_JSON_RESPONSE";
-    private final MutableLiveData<P> LDProvider = new MutableLiveData<>();
-    private MutableLiveData<ArrayList<E>> LDList;
+    static final String STATE_NO_INTERNET = "STATE_NO_INTERNET";
+    static final String STATE_LOADING_STARTS = "STATE_LOADING_STARTS";
+    static final String STATE_LOADING_ENDS = "STATE_LOADING_ENDS";
+    static final String STATE_DONE = "STATE_DONE";
+    private final MutableLiveData<P> mldProvider = new MutableLiveData<>();
+    private final MutableLiveData<String> mldState = new MutableLiveData<>();
+    private MutableLiveData<ArrayList<E>> mldList;
 
     public VMListProvider(@NonNull Application application) {
         super(application);
@@ -29,23 +33,39 @@ public class VMListProvider <P extends ListProvider<E>, E> extends AndroidViewMo
         this.application = application;
     }
 
-    public MutableLiveData<ArrayList<E>> getLDList() {
-        // Si pas encore ou plus d'ArrayList, instancier et requêter le serveur du provider.
-        if (LDList == null) {
-            LDList = new MutableLiveData<>();
-            new AsyncTaskProvider().execute(LDProvider.getValue());
-        }
+    public MutableLiveData<String> getMldState() {
+        return mldState;
+    }
 
+    public void setStateDone() {
+        mldState.setValue(STATE_DONE);
+    }
+
+    public MutableLiveData<ArrayList<E>> getMldList(boolean forceReload) {
+        // Si pas encore ou plus d'ArrayList, instancier et requêter le serveur du provider.
+        if (mldList == null) {
+            mldList = new MutableLiveData<>();
+            loadData();
+        } else if (forceReload) {
+            loadData();
+        }
         // Retourner l'ArrayList.
-        return LDList;
+        return mldList;
     }
 
     public P getProvider() {
-        return LDProvider.getValue();
+        return mldProvider.getValue();
     }
 
     public void setProvider(P provider) {
-        LDProvider.setValue(provider);
+        mldProvider.setValue(provider);
+    }
+
+    private void loadData() {
+        if (Util.isCOnnected(application))
+            new AsyncTaskProvider().execute(mldProvider.getValue());
+        else
+            mldState.setValue(STATE_NO_INTERNET);
     }
 
     /**
@@ -56,7 +76,14 @@ public class VMListProvider <P extends ListProvider<E>, E> extends AndroidViewMo
     private class AsyncTaskProvider extends AsyncTask<P, Void, ArrayList<E>> {
 
         @Override
-        protected ArrayList<E> doInBackground(P... providers) {
+        protected void onPreExecute() {
+            // SIgnaler le début du chargement.
+            mldState.setValue(STATE_LOADING_STARTS);
+        }
+
+        @SafeVarargs
+        @Override
+        protected final ArrayList<E> doInBackground(P... providers) {
             // Requeter le ListProvider.
             P provider = providers[0];
             // Préparer un inputStream
@@ -89,7 +116,9 @@ public class VMListProvider <P extends ListProvider<E>, E> extends AndroidViewMo
         protected void onPostExecute(ArrayList<E> list) {
             Log.d("list", list.toString());
             // Définir l'ArrayList LiveData à partir de l'ArrayList reçu.
-            LDList.setValue(list);
+            VMListProvider.this.mldList.setValue(list);
+            // Signaler le fin du chargement.
+            mldState.setValue(STATE_LOADING_ENDS);
         }
     }
 }
