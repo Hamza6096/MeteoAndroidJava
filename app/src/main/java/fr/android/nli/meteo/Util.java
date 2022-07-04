@@ -6,7 +6,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 
 final public class Util {
-    public static boolean isCOnnected(final Context context) {
+    public static boolean isConnected(final Context context) {
         // Récuperer un ConnectivityManager.
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null)

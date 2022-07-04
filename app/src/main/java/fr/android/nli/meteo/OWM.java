@@ -21,7 +21,6 @@ import org.json.JSONObject;
 import fr.android.nli.meteo.OWM.Observation;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -60,8 +59,12 @@ public final class OWM implements ListProvider<Observation> {
             JSONObject main = city.getJSONObject("main");
             obs.min = (int) Math.round(main.getDouble("temp_min"));
             obs.max = (int) Math.round(main.getDouble("temp_max"));
+            obs.feelsLike = (int) Math.round(main.getDouble("feels_like"));
+            obs.humidity = main.getInt("humidity");
+            JSONObject wind = city.getJSONObject("wind");
+            obs.windDirection = wind.getInt("deg");
+            obs.windSpeed = (int) Math.round(wind.getDouble("speed") * 3.6); // m/s -> km/h
             // Downloader les icônes.
-            InputStream icon;
             try {
                 obs.icon = BitmapFactory.decodeStream(new URL(obs.iconURL).openStream());
             } catch (IOException e) {
@@ -81,6 +84,10 @@ public final class OWM implements ListProvider<Observation> {
         String city;
         int min;
         int max;
+        int feelsLike;
+        int humidity;
+        int windSpeed;
+        int windDirection;
         String description;
         String iconURL;
         Bitmap icon;

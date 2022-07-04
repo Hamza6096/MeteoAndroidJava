@@ -46,6 +46,15 @@ public class ActivityMeteo extends AppCompatActivity {
                     // Masquer le SnackBar du chargement.
                     loadingBar.dismiss();
                     break;
+                case VMListProvider.STATE_CLICK_ON_INTEM:
+                    // Remplacer le FragmentList par le FragmentObservation dans le Framelayout.
+                    this
+                            .getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.container, new FragmentObservation())
+                            .addToBackStack(null)
+                            .commit();
+                    break;
                 case VMListProvider.STATE_DONE:
                     // Ne rien faire, présent pour éviter une boucle sans fin
                     return;

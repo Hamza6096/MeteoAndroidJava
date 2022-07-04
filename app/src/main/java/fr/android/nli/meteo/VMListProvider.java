@@ -15,7 +15,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class VMListProvider<P extends ListProvider<E>, E> extends AndroidViewModel {
+public final class VMListProvider<P extends ListProvider<E>, E> extends AndroidViewModel {
     private final Application application;
     private static final String ERROR_WRONG_SERVER_RESPONSE = "ERROR_WRONG_SERVER_RESPONSE";
     private static final String ERROR_WRONG_JSON_RESPONSE = "ERROR_WRONG_JSON_RESPONSE";
@@ -23,8 +23,10 @@ public class VMListProvider<P extends ListProvider<E>, E> extends AndroidViewMod
     static final String STATE_LOADING_STARTS = "STATE_LOADING_STARTS";
     static final String STATE_LOADING_ENDS = "STATE_LOADING_ENDS";
     static final String STATE_DONE = "STATE_DONE";
+    static final String STATE_CLICK_ON_INTEM = "STATE_CLICK_ON_INTEM";
     private final MutableLiveData<P> mldProvider = new MutableLiveData<>();
     private final MutableLiveData<String> mldState = new MutableLiveData<>();
+    private final MutableLiveData<Integer> mldPosition = new MutableLiveData<>();
     private MutableLiveData<ArrayList<E>> mldList;
 
     public VMListProvider(@NonNull Application application) {
@@ -61,8 +63,21 @@ public class VMListProvider<P extends ListProvider<E>, E> extends AndroidViewMod
         mldProvider.setValue(provider);
     }
 
+    public void setPosition(int position) {
+        // Sauvegarder la pposition
+        mldPosition.setValue(position);
+        // Signaler le clic sur item
+        mldState.setValue(STATE_CLICK_ON_INTEM);
+    }
+
+    public E getItem() {
+        ArrayList<E> list = mldList.getValue();
+        Integer position = mldPosition.getValue();
+        return list != null && position != null ? list.get(position) : null;
+    }
+
     private void loadData() {
-        if (Util.isCOnnected(application))
+        if (Util.isConnected(application))
             new AsyncTaskProvider().execute(mldProvider.getValue());
         else
             mldState.setValue(STATE_NO_INTERNET);

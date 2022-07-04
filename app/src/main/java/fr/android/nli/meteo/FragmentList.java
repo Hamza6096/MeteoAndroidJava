@@ -46,6 +46,8 @@ public class FragmentList<P extends ListProvider<E>, E> extends Fragment {
         ArrayAdapter<E> adapter = vm.getProvider().getAdapter(this.getContext());
         // Associer le ListView à l'ArrayAdapter.
         listView.setAdapter(adapter);
+        // Définir un écouteur de clics sur les items de la liste.
+        listView.setOnItemClickListener((parent, view, position, id) -> vm.setPosition(position));
         // Observer la liste du provider du provider et peupler l'adapter.
         vm.getMldList(false).observe(getViewLifecycleOwner(), list -> {
             adapter.clear();
